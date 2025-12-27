@@ -1,3 +1,4 @@
+package assignment;
 /**
  * This interface represents a 2D map as a raster matrix, image or maze.
  * Ex2: Intro2CS - do NOT change this interface!

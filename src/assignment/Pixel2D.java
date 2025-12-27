@@ -1,3 +1,5 @@
+package assignment;
+
 /**
  * This interface represents an integer based coordinate of a 2D raster (aka a 2D matrix).
  * Ex2: Intro2CS - do NOT change this interface
