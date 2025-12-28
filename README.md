@@ -2,53 +2,72 @@
 
 Third assignment in Java at Ariel University
 
-Ex2 – 2D Maze Algorithms using BFS
 
-Course: Introduction to Computer Science – Ariel University
-Assignment: Ex2 – Basic Object-Oriented Programming
+The project implements a 2D integer grid and uses **BFS (Breadth-First Search)** to support:
+- Flood Fill
+- Distance Map
+- Shortest Path
 
-Overview
+Includes a simple GUI built with **StdDraw**.
 
-This project implements a 2D grid-based map (maze) and demonstrates several fundamental Breadth-First Search (BFS) algorithms using Object-Oriented Programming (OOP) principles.
+---
 
-The system operates on a discrete int[][] representation of a map and includes a graphical visualization based on the StdDraw library.
+## Files Overview
 
-Implemented Algorithms
-Area Filling (Flood Fill)
+- **Pixel2D.java**  
+  Interface for a 2D grid coordinate (x,y).
 
-A BFS-based flood fill algorithm that fills a connected component starting from a given cell.
-The algorithm replaces all reachable cells of the same value with a new value.
+- **Index2D.java**  
+  Implementation of `Pixel2D`.  
+  Supports distance calculation, equality, and string representation.
 
-Distance Mapping
+- **Index2DTest.java**  
+  JUnit tests for `Index2D`.
 
-A BFS-based exploration that computes the minimum distance from a given start cell to all other reachable cells in the map, while avoiding obstacles.
-Unreachable cells remain marked as such.
+- **Map.java**  
+  Main implementation of `Map2D` using `int[][] _map[x][y]`.  
+  Uses BFS for:
+    - `fill` – flood fill of a connected component
+    - `allDistance` – minimum distance from a start cell
+    - `shortestPath` – path reconstruction using the distance map
 
-Shortest Path (Pathfinding)
+- **MapTest.java**  
+  JUnit tests for map initialization, fill, distances, and shortest path.
 
-A shortest path algorithm based on BFS.
-The algorithm computes a distance map and then reconstructs the shortest path between two points by backtracking from the destination to the source.
+- **Ex2_GUI.java**  
+  Interactive GUI to visualize:
+    - Flood fill
+    - Distance map
+    - Shortest path
 
-Graphical User Interface (GUI)
+- **StdDraw.java**  
+  Drawing and input utility library used by the GUI.
 
-A simple graphical user interface was implemented using StdDraw in order to visualize the map and the BFS-based algorithms on a grid of cells.
+---
 
-Each cell in the grid represents a single location in the map and is displayed using colors and numeric values.
+## GUI Controls
 
-GUI Controls
+**Keyboard**
+- `M` – new random maze
+- `F` – fill mode
+- `D` – distance mode
+- `P` – path mode
+- `C` – clear overlays
+- `R` – reset filled cells
 
-The GUI allows interactive activation of the implemented algorithms:
+**Mouse**
+- Click on grid to apply the selected mode.
 
-M – Generate a new random maze
+---
 
-F – Activate Flood Fill mode (click on a cell to fill a connected area)
+## How to Run
 
-D – Activate Distance Mapping mode (click on a cell to compute BFS distances)
+- Run `Ex2_GUI.main()` to start the GUI.
+- Run `Index2DTest` and `MapTest` to execute JUnit tests.
 
-P – Activate Shortest Path mode (click once for start point, click again for end point)
+---
 
-C – Clear algorithm overlays (distance/path visualization)
-
-R – Reset filled cells while keeping obstacles
-
-Mouse Click – Apply the currently selected algorithm on the chosen cell
+## Notes
+- Grid is stored as `_map[x][y]`
+- Neighbors are **4-connected** (up, down, left, right)
+- BFS guarantees shortest paths in the grid
