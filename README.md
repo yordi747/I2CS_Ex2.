@@ -16,7 +16,7 @@ Includes a simple GUI built with **StdDraw**.
 
 - **Pixel2D.java**  
   Interface for a 2D grid coordinate (x,y).
-  (*Provided by the assignment – not modified.*)
+     (*Provided by the assignment – not modified.*)
 
 - **Index2D.java**  
   Implementation of `Pixel2D`.  
