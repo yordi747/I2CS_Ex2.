@@ -5,10 +5,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-/**
- * Map implementation with BFS algorithms.
- * Simple English comments.
- */
 public class Map implements Map2D, Serializable {
 
     private int[][] _map;
@@ -32,25 +28,19 @@ public class Map implements Map2D, Serializable {
         }
     }
 
-    @Override
-    public int[][] getMap() { return _map; }
-    @Override
-    public int getWidth() { return _map.length; }
-    @Override
-    public int getHeight() { return _map[0].length; }
-    @Override
-    public int getPixel(int x, int y) { return _map[x][y]; }
-    @Override
-    public int getPixel(Pixel2D p) { return getPixel(p.getX(), p.getY()); }
-    @Override
-    public void setPixel(int x, int y, int v) { _map[x][y] = v; }
-    @Override
-    public void setPixel(Pixel2D p, int v) { setPixel(p.getX(), p.getY(), v); }
+    @Override public int[][] getMap() { return _map; }
+    @Override public int getWidth() { return _map.length; }
+    @Override public int getHeight() { return _map[0].length; }
+    @Override public int getPixel(int x, int y) { return _map[x][y]; }
+    @Override public int getPixel(Pixel2D p) { return getPixel(p.getX(), p.getY()); }
+    @Override public void setPixel(int x, int y, int v) { _map[x][y] = v; }
+    @Override public void setPixel(Pixel2D p, int v) { setPixel(p.getX(), p.getY(), v); }
 
     @Override
     public boolean isInside(Pixel2D p) {
         if (p == null) return false;
-        return p.getX() >= 0 && p.getY() >= 0 && p.getX() < getWidth() && p.getY() < getHeight();
+        return p.getX() >= 0 && p.getY() >= 0 &&
+                p.getX() < getWidth() && p.getY() < getHeight();
     }
 
     @Override
@@ -93,27 +83,37 @@ public class Map implements Map2D, Serializable {
         }
     }
 
-    // This is the fill method for the GUI
     public int fill(Pixel2D p, int color) { return fill(p, color, false); }
 
+    // ✅ מתוקן: לא ממלאים רצפה (0)
     @Override
     public int fill(Pixel2D start, int newColor, boolean cyclic) {
+        if (start == null || !isInside(start)) return 0;
+
         int oldColor = getPixel(start);
-        if (oldColor == newColor) return 0;
+        if (oldColor == 0 || oldColor == newColor) return 0;
+
         int count = 0;
         ArrayDeque<Pixel2D> q = new ArrayDeque<>();
+
         q.add(start);
         setPixel(start, newColor);
         count++;
-        int[] dx = {1, -1, 0, 0}, dy = {0, 0, 1, -1};
+
+        int[] dx = {1, -1, 0, 0};
+        int[] dy = {0, 0, 1, -1};
+
         while (!q.isEmpty()) {
             Pixel2D p = q.poll();
             for (int i = 0; i < 4; i++) {
-                int nx = p.getX() + dx[i], ny = p.getY() + dy[i];
+                int nx = p.getX() + dx[i];
+                int ny = p.getY() + dy[i];
+
                 if (cyclic) {
                     nx = (nx + getWidth()) % getWidth();
                     ny = (ny + getHeight()) % getHeight();
                 }
+
                 Index2D next = new Index2D(nx, ny);
                 if (isInside(next) && getPixel(next) == oldColor) {
                     setPixel(next, newColor);
@@ -129,15 +129,25 @@ public class Map implements Map2D, Serializable {
     public Map2D allDistance(Pixel2D start, int obsColor, boolean cyclic) {
         Map res = new Map(getWidth(), getHeight(), -1);
         if (!isInside(start) || getPixel(start) == obsColor) return res;
+
         ArrayDeque<Pixel2D> q = new ArrayDeque<>();
         q.add(start);
         res.setPixel(start, 0);
-        int[] dx = {1, -1, 0, 0}, dy = {0, 0, 1, -1};
+
+        int[] dx = {1, -1, 0, 0};
+        int[] dy = {0, 0, 1, -1};
+
         while (!q.isEmpty()) {
             Pixel2D curr = q.poll();
             for (int i = 0; i < 4; i++) {
-                int nx = curr.getX() + dx[i], ny = curr.getY() + dy[i];
-                if (cyclic) { nx = (nx + getWidth()) % getWidth(); ny = (ny + getHeight()) % getHeight(); }
+                int nx = curr.getX() + dx[i];
+                int ny = curr.getY() + dy[i];
+
+                if (cyclic) {
+                    nx = (nx + getWidth()) % getWidth();
+                    ny = (ny + getHeight()) % getHeight();
+                }
+
                 Index2D next = new Index2D(nx, ny);
                 if (isInside(next) && getPixel(next) != obsColor && res.getPixel(next) == -1) {
                     res.setPixel(next, res.getPixel(curr) + 1);
@@ -152,17 +162,28 @@ public class Map implements Map2D, Serializable {
     public Pixel2D[] shortestPath(Pixel2D p1, Pixel2D p2, int obsColor, boolean cyclic) {
         Map2D distMap = allDistance(p1, obsColor, cyclic);
         if (distMap.getPixel(p2) == -1) return null;
+
         ArrayList<Pixel2D> path = new ArrayList<>();
         Pixel2D curr = p2;
+
+        int[] dx = {1, -1, 0, 0};
+        int[] dy = {0, 0, 1, -1};
+
         while (distMap.getPixel(curr) != 0) {
             path.add(0, curr);
-            int[] dx = {1, -1, 0, 0}, dy = {0, 0, 1, -1};
             for (int i = 0; i < 4; i++) {
-                int nx = curr.getX() + dx[i], ny = curr.getY() + dy[i];
-                if (cyclic) { nx = (nx + getWidth()) % getWidth(); ny = (ny + getHeight()) % getHeight(); }
+                int nx = curr.getX() + dx[i];
+                int ny = curr.getY() + dy[i];
+
+                if (cyclic) {
+                    nx = (nx + getWidth()) % getWidth();
+                    ny = (ny + getHeight()) % getHeight();
+                }
+
                 Index2D next = new Index2D(nx, ny);
                 if (isInside(next) && distMap.getPixel(next) == distMap.getPixel(curr) - 1) {
-                    curr = next; break;
+                    curr = next;
+                    break;
                 }
             }
         }
