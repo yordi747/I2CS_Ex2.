@@ -12,7 +12,7 @@ Includes a simple GUI built with **StdDraw**.
 
 ---
 
-## Files Overview
+## Project Structure
 
 - **Pixel2D.java**  
   Interface for a 2D grid coordinate (x,y).
