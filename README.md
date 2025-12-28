@@ -59,6 +59,23 @@ Includes a simple GUI built with **StdDraw**.
 - Click on grid to apply the selected mode.
 
 
+-The project includes **JUnit tests** to ensure correctness and reliability.
+
+- **Index2DTest**
+  - Tests constructors
+  - Tests `getX`, `getY`
+  - Tests `distance2D`
+  - Tests `equals` and `toString`
+
+- **MapTest**
+  - Tests map initialization
+  - Tests flood fill (BFS)
+  - Tests distance map generation
+  - Tests shortest path reconstruction
+
+All tests were executed successfully and validate the core logic of the project.
+
+
 ## Screenshots
 
 ### Flood Fill (BFS)
