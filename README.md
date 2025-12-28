@@ -63,7 +63,7 @@ Includes a simple GUI built with **StdDraw**.
 ## JUnit Tests
 
 
--The project includes **JUnit tests** to ensure correctness and reliability.
+The project includes **JUnit tests** to ensure correctness and reliability.
 
 - **Index2DTest**
   - Tests constructors
