@@ -7,10 +7,6 @@ import org.junit.jupiter.api.Timeout;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Intro2CS, 2026A
- * JUnit test class for Map.
- */
 class MapTest {
 
     private int[][] _map_3_3 = {

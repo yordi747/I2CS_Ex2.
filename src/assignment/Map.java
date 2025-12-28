@@ -10,32 +10,31 @@ import java.util.Arrays;
  * ---
  * Implementation of Map2D using a 2D int grid: _map[x][y].
  *
- * Main ideas:
- * 1) The map is a grid of colors/values (integers).
- * 2) Neighbors are 4-connected: up, down, left, right (no diagonals).
- * 3) We use BFS (queue) for:
- *    - Flood fill (fill an area)
- *    - Distance map (minimum steps from a start)
- *    - Shortest path (by backtracking on the distance map)
+ * Neighbors are 4-connected: up, down, left, right.
+ * BFS is used for:
+ *  - Flood fill
+ *  - Distance map
+ *  - Shortest path (backtracking on distance map)
  *
- * About "cyclic":
- * If cyclic == true, the map behaves like a wrap-around world:
- * going left from x=0 jumps to x=width-1, etc.
+ * cyclic=true means wrap-around at borders.
  */
 public class Map implements Map2D, Serializable {
 
 
     private int[][] _map;
 
+
     public Map(int w, int h, int v) { init(w, h, v); }
 
+
     public Map(int size) { this(size, size, 0); }
+
 
     public Map(int[][] data) { init(data); }
 
     /**
-     * Initialize map with width (w), height (h) and fill value (v).
-     * We allocate a new array and fill every cell with v.
+     * Initialize map with width w, height h and fill value v.
+     * Allocates a new grid and fills all cells with v.
      */
     @Override
     public void init(int w, int h, int v) {
@@ -46,8 +45,8 @@ public class Map implements Map2D, Serializable {
     }
 
     /**
-     * Initialize map from an existing 2D array.
-     * We do a deep copy so later changes to arr will NOT affect this map.
+     * Initialize map from an existing 2D array (deep copy).
+     * Changes to arr after this call will not affect this map.
      */
     @Override
     public void init(int[][] arr) {
@@ -58,19 +57,21 @@ public class Map implements Map2D, Serializable {
         }
     }
 
-    // Basic getters and setters (direct access to the grid).
     @Override public int[][] getMap() { return _map; }
+
     @Override public int getWidth() { return _map.length; }
+
     @Override public int getHeight() { return _map[0].length; }
+
     @Override public int getPixel(int x, int y) { return _map[x][y]; }
+
     @Override public int getPixel(Pixel2D p) { return getPixel(p.getX(), p.getY()); }
+
     @Override public void setPixel(int x, int y, int v) { _map[x][y] = v; }
+
     @Override public void setPixel(Pixel2D p, int v) { setPixel(p.getX(), p.getY(), v); }
 
-    /**
-     * Check if p is a valid coordinate inside the grid boundaries.
-     * Returns false if p is null or outside [0..width-1] x [0..height-1].
-     */
+
     @Override
     public boolean isInside(Pixel2D p) {
         if (p == null) return false;
@@ -79,8 +80,8 @@ public class Map implements Map2D, Serializable {
     }
 
     /**
-     * True if both maps have the same width and height.
-     * Useful before doing operations that require same size.
+     * Checks if two maps have the same dimensions.
+     * @return true if width and height are equal
      */
     @Override
     public boolean sameDimensions(Map2D p) {
@@ -88,8 +89,8 @@ public class Map implements Map2D, Serializable {
     }
 
     /**
-     * Draw a filled circle by scanning all cells and checking distance to center.
-     * If (x-centerX)^2 + (y-centerY)^2 <= rad^2 then the pixel is inside the circle.
+     * Draw a filled circle (brute force scan).
+     * For each cell, if distance to center <= rad, paint it with color.
      */
     @Override
     public void drawCircle(Pixel2D center, double rad, int color) {
@@ -104,8 +105,8 @@ public class Map implements Map2D, Serializable {
     }
 
     /**
-     * Draw a line between p1 and p2 using an integer step algorithm (Bresenham style).
-     * It moves in x and/or y each step until reaching the destination.
+     * Draw a line between p1 and p2 using an integer stepping algorithm
+     * (similar to Bresenham).
      */
     @Override
     public void drawLine(Pixel2D p1, Pixel2D p2, int color) {
@@ -125,8 +126,7 @@ public class Map implements Map2D, Serializable {
     }
 
     /**
-     * Draw a filled rectangle between p1 and p2.
-     * We go over the bounding box (minX..maxX, minY..maxY) and paint all pixels.
+     * Draw a filled rectangle using the bounding box of p1 and p2.
      */
     @Override
     public void drawRect(Pixel2D p1, Pixel2D p2, int color) {
@@ -139,40 +139,39 @@ public class Map implements Map2D, Serializable {
         }
     }
 
-    /** Convenience overload: default cyclic = false. */
+    /**
+     * Flood fill with cyclic=false by default.
+     * @return number of painted cells
+     */
     public int fill(Pixel2D p, int color) {
         return fill(p, color, false);
     }
 
     /**
      * Flood Fill (BFS):
-     * - Start from 'start'
-     * - Fill only cells that have the SAME original color as start (oldColor)
-     * - Replace them with newColor
+     * Fills the connected component that has the same value as start (oldColor),
+     * and replaces it with newColor.
      *
-     * Rules here:
-     * - If start is out of bounds -> return 0
-     * - If oldColor is 0 -> we do not fill (0 is treated like "do not paint")
-     * - BFS prevents recursion/stack overflow and guarantees we visit each cell once.
+     * Notes:
+     * - Works also when oldColor is 0 (FREE).
+     * - If oldColor == newColor, nothing to do.
      *
-     * Returns: number of painted cells.
+     * @return number of painted cells
      */
     @Override
     public int fill(Pixel2D start, int newColor, boolean cyclic) {
         if (start == null || !isInside(start)) return 0;
 
         int oldColor = getPixel(start);
-        if (oldColor == 0 || oldColor == newColor) return 0;
+        if (oldColor == newColor) return 0;
 
         int count = 0;
         ArrayDeque<Pixel2D> q = new ArrayDeque<>();
         q.add(start);
 
-        // Mark as visited immediately by painting it, so we don't enqueue it again later.
         setPixel(start, newColor);
         count++;
 
-        // 4 directions: right, left, up, down
         int[] dx = {1, -1, 0, 0};
         int[] dy = {0, 0, 1, -1};
 
@@ -183,7 +182,6 @@ public class Map implements Map2D, Serializable {
                 int nx = p.getX() + dx[i];
                 int ny = p.getY() + dy[i];
 
-                // If cyclic, wrap around the borders.
                 if (cyclic) {
                     nx = (nx + getWidth()) % getWidth();
                     ny = (ny + getHeight()) % getHeight();
@@ -191,7 +189,7 @@ public class Map implements Map2D, Serializable {
 
                 Index2D next = new Index2D(nx, ny);
 
-                // We only fill pixels that match oldColor.
+                // Fill only cells that match the original color (oldColor).
                 if (isInside(next) && getPixel(next) == oldColor) {
                     setPixel(next, newColor);
                     q.add(next);
@@ -203,11 +201,10 @@ public class Map implements Map2D, Serializable {
     }
 
     /**
-     * Distance map (BFS):
-     * Creates a new map 'res' where res[x][y] = minimum number of steps from 'start'.
-     * - Obstacles are cells in THIS map with value obsColor (they are blocked).
-     * - Unreachable cells stay as -1.
-     * - BFS works because each move costs 1 step and BFS explores by layers.
+     * BFS distance map from 'start'.
+     * res[x][y] is the minimum number of steps from start.
+     * - Cells with obsColor in THIS map are blocked.
+     * - Unreachable cells stay -1.
      */
     @Override
     public Map2D allDistance(Pixel2D start, int obsColor, boolean cyclic) {
@@ -235,10 +232,7 @@ public class Map implements Map2D, Serializable {
 
                 Index2D next = new Index2D(nx, ny);
 
-                // Visit neighbor only if:
-                // 1) It's inside bounds
-                // 2) It's not an obstacle in the original map
-                // 3) We didn't assign it a distance yet in res (-1 means unvisited)
+                // Visit if inside, not obstacle, and still unvisited in res.
                 if (isInside(next) &&
                         getPixel(next) != obsColor &&
                         res.getPixel(next) == -1) {
@@ -252,18 +246,18 @@ public class Map implements Map2D, Serializable {
     }
 
     /**
-     * Shortest path between p1 and p2:
-     * 1) Build distance map from p1 (BFS).
+     * Shortest path from p1 to p2:
+     * 1) Build BFS distance map from p1.
      * 2) If p2 is unreachable -> return null.
-     * 3) Reconstruct path by stepping backwards:
-     *    from p2 go to a neighbor with distance = currentDistance - 1,
-     *    until reaching distance 0 (which is p1).
+     * 3) Backtrack from p2 to p1 by always going to a neighbor with distance-1.
      *
-     * Returns: array of Pixel2D from p1 to p2.
+     * @return array of points from p1 to p2, or null if no path exists
      */
     @Override
-    public Pixel2D[] shortestPath(Pixel2D p1, Pixel2D p2,
-                                  int obsColor, boolean cyclic) {
+    public Pixel2D[] shortestPath(Pixel2D p1, Pixel2D p2, int obsColor, boolean cyclic) {
+        if (p1 == null || p2 == null) return null;
+        if (!isInside(p1) || !isInside(p2)) return null;
+
         Map2D distMap = allDistance(p1, obsColor, cyclic);
         if (distMap.getPixel(p2) == -1) return null;
 
@@ -274,8 +268,9 @@ public class Map implements Map2D, Serializable {
         int[] dy = {0, 0, 1, -1};
 
         while (distMap.getPixel(curr) != 0) {
-            path.add(0, curr); // insert at start, so final order is p1 -> p2
+            path.add(0, curr);
 
+            boolean moved = false;
             for (int i = 0; i < 4; i++) {
                 int nx = curr.getX() + dx[i];
                 int ny = curr.getY() + dy[i];
@@ -287,21 +282,26 @@ public class Map implements Map2D, Serializable {
 
                 Index2D next = new Index2D(nx, ny);
 
-                // Move to any neighbor that is exactly one step closer to p1
                 if (isInside(next) &&
                         distMap.getPixel(next) == distMap.getPixel(curr) - 1) {
                     curr = next;
+                    moved = true;
                     break;
                 }
             }
+            if (!moved) return null; // safety
         }
 
         path.add(0, p1);
         return path.toArray(new Pixel2D[0]);
     }
 
-    /** Optional operations (left empty if not required right now). */
+
     @Override public void mul(double scalar) {}
+
+
     @Override public void addMap2D(Map2D p) {}
+
+
     @Override public void rescale(double sx, double sy) {}
 }

@@ -1,24 +1,18 @@
 package assignment;
 
-/**
- * This class represents a 2D point (pixel) with x and y coordinates.
- */
+
 public class Index2D implements Pixel2D {
 
     private int _x;
     private int _y;
 
-    /**
-     * Constructor.
-     */
+
     public Index2D(int x, int y) {
         this._x = x;
         this._y = y;
     }
 
-    /**
-     * Copy constructor.
-     */
+
     public Index2D(Pixel2D other) {
         this._x = other.getX();
         this._y = other.getY();
@@ -34,9 +28,7 @@ public class Index2D implements Pixel2D {
         return _y;
     }
 
-    /**
-     * Euclidean distance between this point and p2.
-     */
+
     @Override
     public double distance2D(Pixel2D p2) {
         if (p2 == null) {

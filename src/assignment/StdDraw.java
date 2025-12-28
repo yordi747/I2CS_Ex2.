@@ -1895,6 +1895,5 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 
 }
 
-
 //Copyright © 2000–2017, Robert Sedgewick and Kevin Wayne.
 //Last updated: Mon Aug 27 16:43:47 EDT 2018.
