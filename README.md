@@ -3,7 +3,7 @@
 Third assignment in Java at Ariel University
 
 
-The project implements a 2D integer grid and uses **BFS (Breadth-First Search)** to support:
+The project implements Basic Object-Oriented Programming & 2D integer grid and uses **BFS (Breadth-First Search)** to support:
 - Flood Fill
 - Distance Map
 - Shortest Path
