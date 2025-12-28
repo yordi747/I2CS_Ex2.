@@ -80,7 +80,7 @@ Includes a simple GUI built with **StdDraw**.
 
 ---
 
-## Screenshots
+## Visualization 
 
 ### Flood Fill (BFS)
 Flood fill of a connected component.
