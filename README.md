@@ -47,11 +47,11 @@ Includes a simple GUI built with **StdDraw**.
 
 ## How to Run 
 
-1. Open the project in IntelliJ IDEA.
-2. Make sure all files are under the same package.
-3. Locate the file `Ex2_GUI.java`.
-4. Right-click the file and select **Run 'Ex2_GUI'**.
-5. The GUI window will open and display the map.
+- Open the project in IntelliJ IDEA.
+- Make sure all files are under the same package.
+- Locate the file `Ex2_GUI.java`.
+- Right-click the file and select **Run 'Ex2_GUI'**.
+- The GUI window will open and display the map.
 
 ---
 
