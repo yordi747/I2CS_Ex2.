@@ -34,6 +34,7 @@ Includes a simple GUI built with **StdDraw**.
     - `shortestPath` – path reconstruction using the distance map
 
  - **Map2D.java**
+   
     Interface defining the required operations for a 2D map.
     
      (*Provided by the assignment – not modified.*)
