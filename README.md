@@ -77,7 +77,6 @@ Includes a simple GUI built with **StdDraw**.
   - Tests distance map generation
   - Tests shortest path reconstruction
 
-All tests were executed successfully and validate the core logic of the project.
 
 ---
 
