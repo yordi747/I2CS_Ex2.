@@ -31,6 +31,10 @@ Includes a simple GUI built with **StdDraw**.
     - `allDistance` – minimum distance from a start cell
     - `shortestPath` – path reconstruction using the distance map
 
+ - **Map2D.java**
+ - Interface defining the required operations for a 2D map.  
+*Provided by the assignment – not modified.*
+
 - **MapTest.java**  
   JUnit tests for map initialization, fill, distances, and shortest path.
 
