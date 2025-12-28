@@ -2,66 +2,53 @@
 
 Third assignment in Java at Ariel University
 
-# Ex2 – OOP & 2D Maps
+Ex2 – 2D Maze Algorithms using BFS
 
----
+Course: Introduction to Computer Science – Ariel University
+Assignment: Ex2 – Basic Object-Oriented Programming
 
-## What is this project?
-This project is about working with a 2D map (`int[][]`) using Object-Oriented Programming.
+Overview
 
-The map can represent an image or a maze.
-On this map we implemented several algorithms based on **BFS (Breadth-First Search)**.
+This project implements a 2D grid-based map (maze) and demonstrates several fundamental Breadth-First Search (BFS) algorithms using Object-Oriented Programming (OOP) principles.
 
----
+The system operates on a discrete int[][] representation of a map and includes a graphical visualization based on the StdDraw library.
 
-## Main Parts
+Implemented Algorithms
+Area Filling (Flood Fill)
 
-### Map
-The main class of the project.  
-Implements the given `Map2D` interface (the interface was not changed).
+A BFS-based flood fill algorithm that fills a connected component starting from a given cell.
+The algorithm replaces all reachable cells of the same value with a new value.
 
-What it does:
-- Stores a 2D map
-- Get and set pixel values
-- Draw shapes on the map:
-    - Line
-    - Circle
-    - Rectangle
-- BFS algorithms:
-    - `fill`
-    - `allDistance`
-    - `shortestPath`
-- Supports cyclic and non-cyclic maps
+Distance Mapping
 
----
+A BFS-based exploration that computes the minimum distance from a given start cell to all other reachable cells in the map, while avoiding obstacles.
+Unreachable cells remain marked as such.
 
-### Index2D
-Implements the given `Pixel2D` interface.
+Shortest Path (Pathfinding)
 
-Represents a single pixel with `(x, y)` coordinates.
+A shortest path algorithm based on BFS.
+The algorithm computes a distance map and then reconstructs the shortest path between two points by backtracking from the destination to the source.
 
----
+Graphical User Interface (GUI)
 
-### Ex2_GUI
-Simple GUI using **StdDraw**.
+A simple graphical user interface was implemented using StdDraw in order to visualize the map and the BFS-based algorithms on a grid of cells.
 
-- Displays the map on the screen
-- Each cell is shown as a colored square
-- Includes save and load functions
-- The `main` method is only for demo and testing
+Each cell in the grid represents a single location in the map and is displayed using colors and numeric values.
 
-All logic is in the `Map` class, not in the GUI.
+GUI Controls
 
----
+The GUI allows interactive activation of the implemented algorithms:
 
-### MapTest
-JUnit tests for the `Map` class.
+M – Generate a new random maze
 
-Tests include:
-- Initialization
-- Pixel get/set
-- Fill
-- Distance map
-- Shortest path
-- Large map test
+F – Activate Flood Fill mode (click on a cell to fill a connected area)
 
+D – Activate Distance Mapping mode (click on a cell to compute BFS distances)
+
+P – Activate Shortest Path mode (click once for start point, click again for end point)
+
+C – Clear algorithm overlays (distance/path visualization)
+
+R – Reset filled cells while keeping obstacles
+
+Mouse Click – Apply the currently selected algorithm on the chosen cell
