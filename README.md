@@ -65,7 +65,8 @@ Includes a simple GUI built with **StdDraw**.
 Flood fill of a connected component.
 All reachable FREE cells (0) from the selected cell are filled with value 2 (red).
 
-![Flood Fill](screenshots/fill.png)
+<img width="816" height="697" alt="Screenshot 2025-12-28 182407" src="https://github.com/user-attachments/assets/f21b3a8c-1f14-49c1-abea-d666bb3e4e6d" />
+
 
 ### Distance Map (BFS)
 Each cell shows the minimum number of steps from the selected start cell.
@@ -78,6 +79,6 @@ Walls are blocked and unreachable cells remain unvisited.
 The shortest path between a start cell (green) and an end cell (orange),
 computed using BFS and displayed in blue.
 
-![Shortest Path](screenshots/path.png)
+<img width="816" height="698" alt="Screenshot 2025-12-28 182529" src="https://github.com/user-attachments/assets/4158e824-a1af-484a-af3e-468d5906ade5" />
 
 
