@@ -57,7 +57,9 @@ Includes a simple GUI built with **StdDraw**.
 
 **Mouse**
 - Click on grid to apply the selected mode.
+  
 
+**JUnit tests**
 
 -The project includes **JUnit tests** to ensure correctness and reliability.
 
