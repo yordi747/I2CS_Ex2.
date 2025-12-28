@@ -16,6 +16,7 @@ Includes a simple GUI built with **StdDraw**.
 
 - **Pixel2D.java**  
   Interface for a 2D grid coordinate (x,y).
+  
      (*Provided by the assignment – not modified.*)
 
 - **Index2D.java**  
@@ -33,7 +34,8 @@ Includes a simple GUI built with **StdDraw**.
     - `shortestPath` – path reconstruction using the distance map
 
  - **Map2D.java**
-    Interface defining the required operations for a 2D map.  
+    Interface defining the required operations for a 2D map.
+    
      (*Provided by the assignment – not modified.*)
 
 - **MapTest.java**  
