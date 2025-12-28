@@ -79,6 +79,7 @@ Includes a simple GUI built with **StdDraw**.
 
 All tests were executed successfully and validate the core logic of the project.
 
+---
 
 ## Screenshots
 
