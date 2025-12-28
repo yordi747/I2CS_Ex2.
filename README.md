@@ -1,6 +1,6 @@
 # I2CS_Ex2
 
-Third assignment in Java at Ariel University
+Third assignment in Java at Ariel University:
 
 
 The project implements Basic Object-Oriented Programming & 2D integer grid and uses **BFS (Breadth-First Search)** to support:
