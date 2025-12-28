@@ -65,8 +65,7 @@ Includes a simple GUI built with **StdDraw**.
 Flood fill of a connected component.
 All reachable FREE cells (0) from the selected cell are filled with value 2 (red).
 
-<img width="816" height="697" alt="Screenshot 2025-12-28 182407" src="https://github.com/user-attachments/assets/f21b3a8c-1f14-49c1-abea-d666bb3e4e6d" />
-
+<img width="815" height="698" alt="Screenshot 2025-12-28 183959" src="https://github.com/user-attachments/assets/47dc4e44-1824-4e82-9257-9603b067653d" />
 
 ### Distance Map (BFS)
 Each cell shows the minimum number of steps from the selected start cell.
