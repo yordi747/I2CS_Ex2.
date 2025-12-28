@@ -71,7 +71,8 @@ All reachable FREE cells (0) from the selected cell are filled with value 2 (red
 Each cell shows the minimum number of steps from the selected start cell.
 Walls are blocked and unreachable cells remain unvisited.
 
-![Distance Map](screenshots/distance.png)
+<img width="816" height="697" alt="Screenshot 2025-12-28 182407" src="https://github.com/user-attachments/assets/f1043af8-7387-417b-b1fe-0791d3dea403" />
+
 
 ### Shortest Path (BFS)
 The shortest path between a start cell (green) and an end cell (orange),
