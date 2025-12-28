@@ -45,7 +45,7 @@ Includes a simple GUI built with **StdDraw**.
 
 ---
 
-### How to Run 
+## How to Run 
 
 1. Open the project in IntelliJ IDEA.
 2. Make sure all files are under the same package.
