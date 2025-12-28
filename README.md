@@ -58,16 +58,5 @@ Includes a simple GUI built with **StdDraw**.
 **Mouse**
 - Click on grid to apply the selected mode.
 
----
 
-## How to Run
 
-- Run `Ex2_GUI.main()` to start the GUI.
-- Run `Index2DTest` and `MapTest` to execute JUnit tests.
-
----
-
-## Notes
-- Grid is stored as `_map[x][y]`
-- Neighbors are **4-connected** (up, down, left, right)
-- BFS guarantees shortest paths in the grid

@@ -3,10 +3,7 @@ package assignment;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests for the Index2D class.
- * Simple and clear tests as required in the assignment.
- */
+
 public class Index2DTest {
 
     @Test

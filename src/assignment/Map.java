@@ -259,7 +259,7 @@ public class Map implements Map2D, Serializable {
      *    from p2 go to a neighbor with distance = currentDistance - 1,
      *    until reaching distance 0 (which is p1).
      *
-     * Returns: array of Pixel2D from p1 to p2 (inclusive).
+     * Returns: array of Pixel2D from p1 to p2.
      */
     @Override
     public Pixel2D[] shortestPath(Pixel2D p1, Pixel2D p2,
