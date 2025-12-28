@@ -1,55 +1,57 @@
 package assignment;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.util.Random;
 
 /**
  * Ex2 GUI using StdDraw.
+ * Supports:
+ * 1) Flood fill (BFS)   - mode F, click to fill connected component
+ * 2) Distance map (BFS) - mode D, click to compute distances + show numbers
+ * 3) Shortest path      - mode P, click start then click end to show path
  *
- * Controls:
- * - M : create a simple maze (walls)
- * - S : randomize Start (green) and Target (blue)
- * - A : show distance map (numbers) from Start (BFS)
- * - P : show shortest path from Start to Target (BFS shortest path)
- * - Click: flood fill from clicked cell (paint RED)
+ * Map values (maze):
+ * 0 = free cell (white)
+ * 1 = obstacle/wall (black)
+ * 2 = filled area (red) - produced by fill
  */
 public class Ex2_GUI {
 
-    // --- Visual settings ---
-    private static final int CELL_SIZE = 18;     // pixels per cell
-    private static final double HALF = 0.5;      // square radius (in grid units)
+    // --- UI sizes ---
+    private static final int CELL_PX = 22;   // size of each grid cell in pixels (small squares)
+    private static final int TOP_BAR_PX = 70;
 
-    // --- Map settings ---
-    private static final int W = 25;
-    private static final int H = 25;
+    // --- Maze values ---
+    private static final int FREE = 0;
+    private static final int WALL = 1;
+    private static final int FILLED = 2;
 
-    // --- Colors stored INSIDE map as RGB int ---
-    private static final int FREE  = Color.WHITE.getRGB();
-    private static final int WALL  = Color.BLACK.getRGB();
-    private static final int FILL  = Color.RED.getRGB();
-    private static final int START = new Color(0, 170, 0).getRGB();   // green
-    private static final int TARGET = new Color(0, 90, 255).getRGB(); // blue
-    private static final int PATH  = new Color(255, 210, 0).getRGB(); // yellow
+    // --- Modes ---
+    private enum Mode { FILL, DIST, PATH }
+
+    private static Mode mode = Mode.FILL;
+
+    // Current state
+    private static Map2D map;         // the main maze map (0/1/2)
+    private static Map2D distMap;     // distances overlay (-1 unreachable)
+    private static Pixel2D[] path;    // current shortest path overlay
+
+    private static Pixel2D pathStart = null;
+    private static Pixel2D pathEnd   = null;
 
     private static final Random rnd = new Random();
 
-    // State
-    private static Map2D map;
-    private static Pixel2D startP = null;
-    private static Pixel2D targetP = null;
-
-    // Mode flags
-    private static boolean showDistances = false;
-
     public static void main(String[] args) {
-        map = new Map(W, H, FREE);
+        int w = 30, h = 20; // not too huge so numbers are readable
 
-        // create initial maze + start/target
-        createMaze(map);
-        randomizeStartTarget();
+        map = new Map(w, h, FREE);
+        createRandomMaze(map, 0.28); // 28% walls
+        distMap = null;
+        path = null;
 
-        setupCanvas(W, H);
-        redraw();
+        setupCanvas(map);
+        redrawAll();
 
         // main loop
         while (true) {
@@ -59,242 +61,271 @@ public class Ex2_GUI {
         }
     }
 
-    // ---------- Setup ----------
-    private static void setupCanvas(int w, int h) {
-        StdDraw.setCanvasSize(w * CELL_SIZE, h * CELL_SIZE);
+    private static void setupCanvas(Map2D m) {
+        int w = m.getWidth();
+        int h = m.getHeight();
+
+        StdDraw.setCanvasSize(w * CELL_PX, h * CELL_PX + TOP_BAR_PX);
         StdDraw.setXscale(-0.5, w - 0.5);
-        StdDraw.setYscale(-0.5, h - 0.5);
+        // y from -0.5..h-0.5 for grid, plus extra top bar area
+        StdDraw.setYscale(-0.5, h - 0.5 + (double)TOP_BAR_PX / CELL_PX);
+
         StdDraw.enableDoubleBuffering();
     }
 
-    // ---------- Input ----------
+    // ---------------------------
+    // Input handling
+    // ---------------------------
+
     private static void handleKeyboard() {
         if (!StdDraw.hasNextKeyTyped()) return;
 
         char c = Character.toUpperCase(StdDraw.nextKeyTyped());
 
         if (c == 'M') {
-            // New maze
-            showDistances = false;
-            map.init(W, H, FREE);
-            createMaze(map);
-            randomizeStartTarget();
-            redraw();
+            // New random maze
+            clearOverlays();
+            createRandomMaze(map, 0.28);
+            redrawAll();
         }
-        else if (c == 'S') {
-            // New random start & target
-            showDistances = false;
-            randomizeStartTarget();
-            redraw();
+        else if (c == 'F') {
+            mode = Mode.FILL;
+            clearOverlays();
+            redrawAll();
         }
-        else if (c == 'A') {
-            // Show distance map numbers
-            showDistances = true;
-            redraw();
+        else if (c == 'D') {
+            mode = Mode.DIST;
+            clearOverlays();
+            redrawAll();
         }
         else if (c == 'P') {
-            // Show shortest path
-            showDistances = false;
-            drawShortestPath();
+            mode = Mode.PATH;
+            clearOverlays();
+            redrawAll();
+        }
+        else if (c == 'C') {
+            // clear overlays only
+            clearOverlays();
+            redrawAll();
+        }
+        else if (c == 'R') {
+            // reset filled cells back to FREE (keep walls)
+            resetFilledToFree();
+            clearOverlays();
+            redrawAll();
         }
     }
 
     private static void handleMouse() {
         if (!StdDraw.isMousePressed()) return;
 
-        int x = (int) Math.round(StdDraw.mouseX());
-        int y = (int) Math.round(StdDraw.mouseY());
+        int x = (int)Math.round(StdDraw.mouseX());
+        int y = (int)Math.round(StdDraw.mouseY());
 
-        if (x < 0 || x >= W || y < 0 || y >= H) {
+        // click must be inside grid area (not top bar)
+        if (x < 0 || x >= map.getWidth() || y < 0 || y >= map.getHeight()) {
             StdDraw.pause(150);
             return;
         }
 
-        // If click on wall - do nothing
-        if (map.getPixel(x, y) == WALL) {
-            StdDraw.pause(150);
-            return;
+        Pixel2D p = new Index2D(x, y);
+
+        if (mode == Mode.FILL) {
+            // flood fill only on free or filled; if clicked wall do nothing
+            if (map.getPixel(p) != WALL) {
+                // Fill connected component with red-mark value=2
+                map.fill(p, FILLED, false);
+            }
+            clearOverlays();
+            redrawAll();
+        }
+        else if (mode == Mode.DIST) {
+            // compute BFS distance map from clicked point, walls are obstacles
+            clearOverlays();
+            distMap = map.allDistance(p, WALL, false);
+            redrawAll();
+        }
+        else if (mode == Mode.PATH) {
+            // choose start then end
+            if (pathStart == null) {
+                pathStart = p;
+                pathEnd = null;
+                path = null;
+            } else {
+                pathEnd = p;
+                path = map.shortestPath(pathStart, pathEnd, WALL, false);
+            }
+            distMap = null;
+            redrawAll();
         }
 
-        // Flood fill on click (RED)
-        // This will NOT paint the whole map because maze has WALLs that separate areas.
-        map.fill(new Index2D(x, y), FILL, false);
-
-        showDistances = false;
-        redraw();
-
-        StdDraw.pause(150); // avoid repeated fill while holding mouse
+        StdDraw.pause(180); // avoid multi-click spam
     }
 
-    // ---------- Core Actions ----------
-    private static void randomizeStartTarget() {
-        // Clear old markers (turn back to FREE if they are not walls)
-        clearMarkers();
-
-        startP = randomFreeCell();
-        targetP = randomFreeCell();
-
-        while (targetP.equals(startP)) {
-            targetP = randomFreeCell();
-        }
-
-        map.setPixel(startP, START);
-        map.setPixel(targetP, TARGET);
+    private static void clearOverlays() {
+        distMap = null;
+        path = null;
+        pathStart = null;
+        pathEnd = null;
     }
 
-    private static void clearMarkers() {
-        if (startP != null && map.isInside(startP) && map.getPixel(startP) == START) {
-            map.setPixel(startP, FREE);
-        }
-        if (targetP != null && map.isInside(targetP) && map.getPixel(targetP) == TARGET) {
-            map.setPixel(targetP, FREE);
-        }
-    }
-
-    private static Pixel2D randomFreeCell() {
-        while (true) {
-            int x = rnd.nextInt(W);
-            int y = rnd.nextInt(H);
-            int v = map.getPixel(x, y);
-            if (v != WALL) return new Index2D(x, y);
-        }
-    }
-
-    private static void drawShortestPath() {
-        if (startP == null || targetP == null) return;
-
-        // NOTE: shortestPath returns Pixel2D[] or null
-        Pixel2D[] path = map.shortestPath(startP, targetP, WALL, false);
-
-        // First redraw base
-        redraw();
-
-        // If no path, just write message
-        if (path == null) {
-            drawMessage("No path found (blocked). Press M to rebuild maze.");
-            StdDraw.show();
-            return;
-        }
-
-        // Paint path cells (yellow) but don't overwrite START/TARGET
-        for (Pixel2D p : path) {
-            int v = map.getPixel(p);
-            if (v == START || v == TARGET) continue;
-            map.setPixel(p, PATH);
-        }
-
-        redraw(); // show painted path
-    }
-
-    // ---------- Drawing ----------
-    private static void redraw() {
-        StdDraw.clear(Color.WHITE);
-
-        // base map draw
+    private static void resetFilledToFree() {
         for (int x = 0; x < map.getWidth(); x++) {
             for (int y = 0; y < map.getHeight(); y++) {
-                int v = map.getPixel(x, y);
-                drawCell(x, y, v);
-            }
-        }
-
-        // optional distance overlay
-        if (showDistances && startP != null) {
-            Map2D dist = map.allDistance(startP, WALL, false);
-            drawDistances(dist);
-        }
-
-        // grid lines (nice look)
-        drawGridLines();
-
-        // legend text (small)
-        drawLegend();
-
-        StdDraw.show();
-    }
-
-    private static void drawCell(int x, int y, int rgb) {
-        StdDraw.setPenColor(new Color(rgb));
-        StdDraw.filledSquare(x, y, HALF);
-
-        // If WALL - keep it black.
-        // If FREE etc - already painted.
-    }
-
-    private static void drawDistances(Map2D dist) {
-        // Draw numbers on top of the cells (small)
-        StdDraw.setPenColor(Color.BLACK);
-        StdDraw.setFont(new java.awt.Font("Arial", java.awt.Font.PLAIN, 10));
-
-        for (int x = 0; x < dist.getWidth(); x++) {
-            for (int y = 0; y < dist.getHeight(); y++) {
-                // do not print on walls
-                if (map.getPixel(x, y) == WALL) continue;
-
-                int d = dist.getPixel(x, y);
-                if (d >= 0) {
-                    // put the number
-                    StdDraw.text(x, y, String.valueOf(d));
+                if (map.getPixel(x, y) == FILLED) {
+                    map.setPixel(x, y, FREE);
                 }
             }
         }
     }
 
-    private static void drawGridLines() {
-        StdDraw.setPenColor(new Color(0, 0, 0, 40));
-        for (int x = 0; x <= W; x++) {
-            StdDraw.line(x - 0.5, -0.5, x - 0.5, H - 0.5);
+    // ---------------------------
+    // Drawing
+    // ---------------------------
+
+    private static void redrawAll() {
+        StdDraw.clear(Color.WHITE);
+        drawTopBar();
+        drawGrid();
+        StdDraw.show();
+    }
+
+    private static void drawTopBar() {
+        double topY = map.getHeight() - 0.5 + (double)TOP_BAR_PX / CELL_PX / 2.0;
+
+        // bar background
+        StdDraw.setPenColor(new Color(245, 245, 245));
+        StdDraw.filledRectangle((map.getWidth() - 1) / 2.0, topY,
+                map.getWidth() / 2.0, (double)TOP_BAR_PX / CELL_PX / 2.0);
+
+        StdDraw.setPenColor(Color.DARK_GRAY);
+        StdDraw.setFont(new Font("Arial", Font.BOLD, 14));
+
+        String modeText =
+                (mode == Mode.FILL) ? "Mode: FILL (click to fill area)" :
+                        (mode == Mode.DIST) ? "Mode: DIST (click to show BFS distances)" :
+                                "Mode: PATH (click start, then click end)";
+
+        StdDraw.textLeft(-0.3, topY + 0.4, modeText);
+
+        StdDraw.setFont(new Font("Arial", Font.PLAIN, 12));
+        StdDraw.textLeft(-0.3, topY - 0.3,
+                "Keys: [M] new maze   [F] fill   [D] distances   [P] path   [C] clear overlay   [R] reset filled");
+    }
+
+    private static void drawGrid() {
+        int w = map.getWidth();
+        int h = map.getHeight();
+
+        // for distance visualization scaling
+        int maxDist = 0;
+        if (distMap != null) {
+            for (int x = 0; x < w; x++) {
+                for (int y = 0; y < h; y++) {
+                    int d = distMap.getPixel(x, y);
+                    if (d > maxDist) maxDist = d;
+                }
+            }
         }
-        for (int y = 0; y <= H; y++) {
-            StdDraw.line(-0.5, y - 0.5, W - 0.5, y - 0.5);
+
+        // base cells
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+
+                // base color from map value
+                int v = map.getPixel(x, y);
+                Color base = (v == WALL) ? Color.BLACK
+                        : (v == FILLED) ? Color.RED
+                        : Color.WHITE;
+
+                // overlay for distance map (if exists and cell is reachable)
+                if (distMap != null) {
+                    int d = distMap.getPixel(x, y);
+                    if (d >= 0 && map.getPixel(x, y) != WALL) {
+                        // grayscale: near=light, far=dark (simple)
+                        int shade = 240;
+                        if (maxDist > 0) {
+                            shade = 240 - (int)Math.round(170.0 * d / maxDist);
+                            shade = clamp(shade, 40, 240);
+                        }
+                        base = new Color(shade, shade, shade);
+                    } else if (map.getPixel(x, y) != WALL) {
+                        base = new Color(230, 230, 230); // unreachable
+                    }
+                }
+
+                StdDraw.setPenColor(base);
+                StdDraw.filledSquare(x, y, 0.5);
+
+                // grid border
+                StdDraw.setPenColor(new Color(210, 210, 210));
+                StdDraw.square(x, y, 0.5);
+
+                // numbers
+                if (distMap != null) {
+                    // show distance numbers
+                    int d = distMap.getPixel(x, y);
+                    if (d >= 0 && map.getPixel(x, y) != WALL) {
+                        StdDraw.setPenColor(Color.BLUE);
+                        StdDraw.setFont(new Font("Arial", Font.PLAIN, 11));
+                        StdDraw.text(x, y, String.valueOf(d));
+                    }
+                } else {
+                    // show maze values (0/1/2) small
+                    StdDraw.setFont(new Font("Arial", Font.PLAIN, 10));
+                    if (v == WALL) StdDraw.setPenColor(Color.WHITE);
+                    else StdDraw.setPenColor(Color.GRAY);
+                    StdDraw.text(x, y, String.valueOf(v));
+                }
+            }
+        }
+
+        // draw shortest path overlay
+        if (path != null && path.length > 0) {
+            for (Pixel2D p : path) {
+                if (p == null) continue;
+                if (map.isInside(p)) {
+                    StdDraw.setPenColor(new Color(0, 120, 255)); // blue
+                    StdDraw.filledSquare(p.getX(), p.getY(), 0.35);
+                }
+            }
+        }
+
+        // mark start/end for PATH mode
+        if (pathStart != null) {
+            StdDraw.setPenColor(Color.GREEN.darker());
+            StdDraw.filledCircle(pathStart.getX(), pathStart.getY(), 0.25);
+        }
+        if (pathEnd != null) {
+            StdDraw.setPenColor(Color.ORANGE.darker());
+            StdDraw.filledCircle(pathEnd.getX(), pathEnd.getY(), 0.25);
         }
     }
 
-    private static void drawLegend() {
-        StdDraw.setPenColor(Color.BLACK);
-        StdDraw.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 12));
-        StdDraw.textLeft(-0.45, H - 0.2,
-                "Keys: M=maze | S=start/target | A=distances | P=path | Click=fill");
+    private static int clamp(int v, int lo, int hi) {
+        return Math.max(lo, Math.min(hi, v));
     }
 
-    private static void drawMessage(String msg) {
-        StdDraw.setPenColor(Color.BLACK);
-        StdDraw.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
-        StdDraw.text(W / 2.0, H - 1.2, msg);
-    }
+    // ---------------------------
+    // Maze generation
+    // ---------------------------
 
-    // ---------- Maze ----------
-    private static void createMaze(Map2D m) {
-        // Very simple maze:
-        // 1) border walls
-        // 2) random internal walls, but keep enough free space
-
-        // borders
-        for (int x = 0; x < W; x++) {
-            m.setPixel(x, 0, WALL);
-            m.setPixel(x, H - 1, WALL);
-        }
-        for (int y = 0; y < H; y++) {
-            m.setPixel(0, y, WALL);
-            m.setPixel(W - 1, y, WALL);
+    private static void createRandomMaze(Map2D m, double wallProb) {
+        for (int x = 0; x < m.getWidth(); x++) {
+            for (int y = 0; y < m.getHeight(); y++) {
+                int val = (rnd.nextDouble() < wallProb) ? WALL : FREE;
+                m.setPixel(x, y, val);
+            }
         }
 
-        // internal random walls
-        int walls = (W * H) / 5; // ~20%
-        for (int i = 0; i < walls; i++) {
-            int x = 1 + rnd.nextInt(W - 2);
-            int y = 1 + rnd.nextInt(H - 2);
-            m.setPixel(x, y, WALL);
+        // Make a guaranteed free border line or two (so you can see algorithms clearly)
+        for (int x = 0; x < m.getWidth(); x++) {
+            m.setPixel(x, 0, FREE);
+            m.setPixel(x, m.getHeight() - 1, FREE);
         }
-
-        // small “corridors”: clear a plus in center so we usually have paths
-        int cx = W / 2;
-        int cy = H / 2;
-        for (int dx = -4; dx <= 4; dx++) {
-            if (cx + dx > 0 && cx + dx < W - 1) m.setPixel(cx + dx, cy, FREE);
-        }
-        for (int dy = -4; dy <= 4; dy++) {
-            if (cy + dy > 0 && cy + dy < H - 1) m.setPixel(cx, cy + dy, FREE);
+        for (int y = 0; y < m.getHeight(); y++) {
+            m.setPixel(0, y, FREE);
+            m.setPixel(m.getWidth() - 1, y, FREE);
         }
     }
 }
